@@ -1,6 +1,7 @@
 import re
 import datetime as dt
 import pymongo
+from termcolor import colored
 
 class Handler:
 
@@ -15,7 +16,7 @@ class Handler:
 
     naive_dates = ['today', 'tomorrow', 'in 2 days', 'in 3 days', 'in 4 days', 'in 5 days', 'in 6 days', 'next week', 'tod', 'tom']
     day_names = ('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun')
-    month_names = ('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+    month_names = ('january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')
     days_in_week = 7
     this_year = dt.datetime.today().year
 
@@ -60,8 +61,8 @@ class Handler:
                 if self.has_type and self.has_date:
                     self.new_db_entry()
                 else:
-                    print('"+type" and/or "due <date>" is absent or improperly placed in command body.')
-                    print('Add command not executed.')
+                    print('"+type" and/or "due <date>" is absent or improperly used in command body.')
+                    print('Add command not executed.\n')
         elif len(usr_commands) == 2:
             if usr_commands['operation'] == 'update':
                 self.set_task_props(input_str)
@@ -130,13 +131,14 @@ class Handler:
 
         due_date_str = ' '.join(due_date_list)
         first_arg = due_date_list[0]
+        acceptable_months = list(Handler.month_names)+[x[:3] for x in Handler.month_names]
 
         if due_date_str in Handler.naive_dates:
             self.spliced_message = " ".join(input_copy[:due_index])
             days_to_inc = Handler.naive_dates.index(due_date_str) % (Handler.days_in_week+1)
             due_date = today + dt.timedelta(days_to_inc)
-        elif first_arg in Handler.month_names:
-            due_date = dt.datetime.strptime(first_arg, '%b')
+        elif first_arg in acceptable_months:
+            due_date = dt.datetime.strptime(first_arg[:3], '%b')
             if len(due_date_list) > 1:
                 second_arg = due_date_list[1]
                 due_date = due_date.replace(year=Handler.this_year)
@@ -151,6 +153,7 @@ class Handler:
                     print('Improper usage of keyword due.')
                     due_date = False
             else:
+                due_date = due_date.replace(year=Handler.this_year)
                 self.spliced_message = " ".join(input_copy[:due_index])
                 print('No day number was given. By default it has been set to the first day of the specified month.')
         elif len(Handler.digit_pattern.findall(first_arg)):
@@ -270,7 +273,7 @@ class Handler:
         dates = list()
         if not drill:
             dates = [record['Date'] for record in all_records if not record['Archived']]
-            dates =  self.sort_dates(dates_list=dates)
+            dates = self.sort_dates(dates_list=dates)
         else:
             for date in drill:
                 split_date = date.lower().split()
@@ -284,6 +287,7 @@ class Handler:
         if not len(dates):
             print('Invalid groupby and/or filter statement.')
             return
+     
         self.show_list(all_records, groups=dates, groupby='Date')
 
     def list_by_status(self, status):
@@ -296,7 +300,8 @@ class Handler:
 
     def list_by_overdue(self):
         all_records = [record for record in Handler.col.find()]
-        overdue_dates = [record['Date'] for record in all_records if record['Overdue'] == True]
+        overdue_dates = list(filter(lambda x: x['Overdue'] and not x['Archived'], all_records))
+        overdue_dates = [record['Date'] for record in overdue_dates]
         overdue_dates = self.sort_dates(overdue_dates)
         
         if len(overdue_dates):
@@ -323,14 +328,10 @@ class Handler:
         return formatted_sort
 
     def list_archives(self):
-        all_records = [record for record in Handler.col.find()]
-        archive_records = list()
-        for record in all_records:
-            if record['Archived']:
-                archive_records.append(record)
+        records = [record for record in Handler.col.find() if record['Archived']]
 
-        if len(archive_records):
-            self.show_list(archive_records, title='\nArchives\n')
+        if len(records):
+            self.show_list(records, title='\nArchives\n')
         else:
             print('There are no todos in archives!')
 
@@ -343,7 +344,7 @@ class Handler:
         record_found = False
         if len(groups):
             for group in groups:
-                output_str += f'\n{group}\n'
+                output_str += f'\n{colored(group, "green")}\n'
                 for record in records:
                     if not record['Archived']:
                         if isinstance(record[groupby], list):
@@ -354,7 +355,7 @@ class Handler:
                             record_found = True
                             output_str += self.stringify_details(record)
         else:
-            output_str += title
+            output_str += colored(title, 'green')
             for record in records:
                 if not record['Archived'] or title[1:-1]=='Archives':
                     record_found = True
@@ -365,10 +366,48 @@ class Handler:
             print('No records to list.')           
                         
     def stringify_details(self, task):
-        f_str = '%-8s' % (task['_id'])
+        colored_id = colored(str(task['_id']), 'yellow')
+        if task['_id'] // 10 == 0:
+            f_str = f"{colored_id}       "
+        else:
+            f_str = f"{colored_id}      "
+        
         status_box = '[x]' if task['Status'] == 'Complete' else '[ ]'
-        f_str += '%-8s %-16s' % (status_box, task['Date'])
-        f_str += f'{task["Message"]}\n'
+        f_str += '%-8s' % (status_box)
+
+        colored_date = colored(task['Date'], 'blue')
+        date = dt.datetime.strptime(task['Date'], '%a %b %d')
+        date = date.replace(year=Handler.this_year) 
+        tod = dt.datetime.today()
+        tom = tod + dt.timedelta(1)
+        is_special = False
+        if date <= tod:
+            if date.day == tod.day and date.month == tod.month:
+                colored_date = colored('today', 'blue')
+                f_str += f"{colored_date}           "
+                is_special = True
+            else:
+                colored_date = colored(task['Date'], 'red')      
+        elif date.day == tom.day and date.month == tom.month:
+            colored_date = colored('tomorrow', 'blue')
+            f_str += f"{colored_date}        "
+            is_special = True
+        
+        if not is_special:
+            if task['Date'][-2] == ' ':
+                f_str += colored_date + ' '*7
+            else:
+                f_str += colored_date + ' '*6
+
+        split_message = task['Message'].split()
+        colored_message = str()
+        for word in split_message:
+            if len(Handler.context_pattern.findall(word)):
+                colored_message += colored(word, 'red') + ' ' 
+            elif len(Handler.type_pattern.findall(word)):
+                colored_message += colored(word, 'magenta') + ' '
+            else:
+                colored_message += colored(word, 'white') + ' '
+        f_str += f'{colored_message}\n'
 
         return f_str
-        
