@@ -384,7 +384,7 @@ class Handler:
         is_special = False
         if date <= tod:
             if date.day == tod.day and date.month == tod.month:
-                colored_date = colored('today', 'blue')
+                colored_date = colored('today', 'red')
                 f_str += f"{colored_date}           "
                 is_special = True
             else:
