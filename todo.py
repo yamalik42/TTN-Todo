@@ -1,6 +1,7 @@
 import sys
 from DataHandler import Handler
 from commands import *
+from user_help import help_dict
 
 args = sys.argv
 if len(args) > 1:
@@ -75,7 +76,7 @@ if len(args) > 1:
                         Handler(operation='list', filter='status', status=state)
                     else:
                         print('Invalid list command usage')
-                elif sec_arg in ('a', 'ar', 'archive'):
+                elif sec_arg in ('a', 'ar', 'archive')+archives:
                     if len(args[1:]) == 2:
                         Handler(operation='list', filter='archive', drill=False)
                     else:
@@ -111,9 +112,17 @@ if len(args) > 1:
                 print('(Un)Archive command requires ID as 2nd argument.')
         else:
             print('(Un)Archive command requires ID as 2nd argument')
+    elif command == '--help':
+        if len(args[1:]) > 2:
+            try:
+                print(help_dict[args[2].lower()])
+            except KeyError:
+                print(help_dict['help'])
+        else:
+            print(help_dict['help'])
     else:
         print('No valid command detected!')
 else:
-    print('Should show help text!')
+    print(help_dict['help'])
 
 

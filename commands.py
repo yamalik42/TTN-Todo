@@ -3,14 +3,14 @@ updates = ('update', 'u', '-u', '-update', '=', 'edit', 'e', '-e', '-edit', 'set
 completes = ('complete', 'c', '-complete', '-c')
 incompletes = ('incomplete', 'i', '-incomplete', '-i')
 deletes = ('del', 'd', 'delete', '-del', '-d', '-delete')
-lists = ('list', 'l', '-list', '-l', 'show', 's', '-show', '-s')
+lists = ('list', 'l', 'li', '-list', '-l', '-li' 'show', 's', '-show', '-s')
 
 date_filters = ('date', 'due', 'day', 'd', '-date', '-due', '-day', '-d')
 context_filters = ('context', 'c', 'con', 'cont', 'co')
 type_filters = ('type', 't', 'ty')
 complete_filters = ('complete', 'com', 'cp')
 incomplete_filters = ('incomplete', 'in', 'i', 'inc')
-
 overdues = ('overdue', 'over', 'o', '-overdue', '-over', '-o')
+
 archives = ('archive', 'ar', '-archive', '-ar')
 unarchives = ('unarchive', 'unar', '-unarchive', '-unar')

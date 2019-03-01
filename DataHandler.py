@@ -44,6 +44,7 @@ class Handler:
         date = self.find_date(self.split_input)
         if date == False and with_due == False:
             self.date = 'null'
+            self.overdue = 'null'
             self.has_date = False
         else:
             if date == False:
@@ -72,7 +73,7 @@ class Handler:
                         self.spliced_message = ''
                     self.update_db_entry(task_id)
                 else:
-                    print('Update needs declaration of a project and/or due date.')
+                    print('Update body needs declaration of a type and/or due date.')
                     print('Neither were found so update not executed.')
             elif usr_commands['operation'] in ('complete', 'incomplete'):
                 task_id = int(usr_commands['task_id'])
@@ -195,7 +196,6 @@ class Handler:
     def update_db_entry(self, _id):
         query = { "_id": _id }
         new_values = dict()
-
         if len(self.spliced_message):
             new_values['$set'] = {
                 'Context': self.context, 'Type': self.task_type,
@@ -204,6 +204,7 @@ class Handler:
             }
             if self.date == 'null':
                 del new_values['$set']['Date']
+                del new_values['$set']['Overdue']
         else:
             new_values['$set'] = {'Date': self.date, 'Overdue': self.overdue}
     
