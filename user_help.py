@@ -115,7 +115,7 @@ help_dict['date'] += f"\n\tIf a date is given as a weekday name then the due dat
 help_dict['date'] += f"\n\tDates can also be given in the format of <month> <day num> where month optionally can be abbreviated.\n"
 help_dict['date'] += f"\n\tLastly, if only an integer value (non-negative) is used then due date is set to the current date incremented by that value.\n"
 
-help_dict['help'] = f"\n\tWelcome to PyTask! This is a CLI based personal task manager written in python and completed with love :) :) :)\n"
+help_dict['help'] = f"\n\tWelcome to What-ToDo! This is a CLI based personal task manager written in python and completed with love :) :) :)\n"
 help_dict['help'] += f"\n\tFor more detailed info on how to use PyTask please use any of the --help commands:\n"
 help_dict['help'] += f"\n\t\t--help add\n"
 help_dict['help'] += f"\n\t\t--help list\n"
